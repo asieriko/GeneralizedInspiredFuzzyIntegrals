@@ -2,9 +2,8 @@
 
 Implementation of some generalized inspired fuzzy integrals 
 
-Implemented the paper 
+## Implemented the paper: Federated learning with the choquet integral as aggregation method
 
-Federated learning with the choquet integral as aggregation method
 Pekala, B., Wilbik, A., Szkola, J., Dyczkowski, K., & Zywica, P. (2024). Federated Learning with the Choquet Integral as Aggregation Method. 
 In 2024 IEEE International Conference on Fuzzy Systems, FUZZ-IEEE 2024 - Proceedings IEEE. 
 https://doi.org/10.1109/FUZZ-IEEE60900.2024.10611748
@@ -32,9 +31,9 @@ https://www.sciencedirect.com/science/article/pii/S0020025526009229
 Some preliminary results:
 
 
-[<img src="federated_results_iid.png">]
+<img src="federated_results_iid.png">
 
-[<img src="federated_results_non-iid.png">]
+<img src="federated_results_non-iid.png">
 
 
 ## License: GPL v3

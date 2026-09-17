@@ -146,7 +146,8 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=10):
         y_p = cent_model.predict(X_test_inf + 0.5*(X_test_sup - X_test_inf))
         y_prob = cent_model.predict_proba(X_test_inf + 0.5*(X_test_sup - X_test_inf))[:, 1]
         res_cent = compute_metrics(y_test, y_p, y_prob)
-        for k in metric_keys: runs_results["Centralized"][k].append(res_cent[k])
+        for k in metric_keys:
+            runs_results["Centralized"][k].append(res_cent[k])
 
         # --- MODELO 2: Local Avg ---
         local_metrics_run = {k: [] for k in metric_keys}
@@ -155,17 +156,20 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=10):
             lp = loc_model.predict(X_test_inf + 0.5*(X_test_sup - X_test_inf))
             lpr = loc_model.predict_proba(X_test_inf + 0.5*(X_test_sup - X_test_inf))[:, 1]
             lm = compute_metrics(y_test, lp, lpr)
-            for k in metric_keys: local_metrics_run[k].append(lm[k])
+            for k in metric_keys:
+                local_metrics_run[k].append(lm[k])
         for k in metric_keys:
             runs_results["Local Avg"][k].append(np.mean(local_metrics_run[k]))
 
         # --- MODELOS 3 & 4: Sugeno FL y Choquet FL (Bucle Iterativo) ---
         for agg_name, agg_func in [("Sugeno FL", sugeno_integral), ("Choquet FL", choquet_integral)]:
             n_features = X_inf.shape[1]
+            # initial params send by the server (betas)
             global_beta = np.zeros(n_features)
             global_beta_0 = 0.0
             local_models = [IntervalLogisticRegressionSGD(n_features) for _ in range(3)]
 
+            # How many times the clientes send the data and receive the aggregated model
             for _ in range(rounds):
                 local_accuracies = []
                 client_betas, client_beta0s = [], []
@@ -184,7 +188,8 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=10):
 
                 fuzzy_measure = compute_lambda_measure(local_accuracies)
                 beta_matrix = np.array(client_betas).T
-                
+
+                # Data aggregation
                 new_beta = np.array([agg_func(beta_matrix[j], fuzzy_measure) for j in range(n_features)])
                 new_beta_0 = agg_func(np.array(client_beta0s), fuzzy_measure)
 
@@ -195,17 +200,20 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=10):
             fl_pred = final_fl.predict(X_test_inf, X_test_sup)
             fl_prob = final_fl.predict_proba(X_test_inf, X_test_sup)
             res_fl = compute_metrics(y_test, fl_pred, fl_prob)
-            for k in metric_keys: runs_results[agg_name][k].append(res_fl[k])
+            for k in metric_keys:
+                runs_results[agg_name][k].append(res_fl[k])
             
         # Definimos la función H inspirada (ej: media de la coalición restante x_hat)
         h_inspired_func = lambda x_hat: np.mean(x_hat) if len(x_hat) > 0 else 0.0
 
         # --- MODELO 5: Sugeno Inspired FL ---
         n_features = X_inf.shape[1]
+        # initial params send by the server (betas)
         global_beta_insp = np.zeros(n_features)
         global_beta_0_insp = 0.0
         local_models_insp = [IntervalLogisticRegressionSGD(n_features) for _ in range(3)]
 
+        # How many times the clientes send the data and receive the aggregated model
         for _ in range(rounds):
             client_betas_insp, client_beta0s_insp = [], []
             for c_idx, indices in enumerate(clients_indices):
