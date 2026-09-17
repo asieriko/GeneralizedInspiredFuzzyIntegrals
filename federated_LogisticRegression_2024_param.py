@@ -100,7 +100,8 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=5, a
     metric_keys = ["ACC", "SENS", "SPEC", "PRC", "AUC"]
     model_names = [m["name"] for m in aggregation_methods]
     runs_results = {m: {k: [] for k in metric_keys} for m in model_names}
-    
+
+    # Number of repetitions
     for run in range(num_runs):
         seed = 42 + run
         if scenario_type == "iid":
@@ -118,22 +119,26 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=5, a
         X_test_inf, X_test_sup, y_test = X_inf[idx_test], X_sup[idx_test], y[idx_test]
         X_train_inf, X_train_sup, y_train = X_inf[~np.isin(np.arange(len(y)), idx_test)], X_sup[~np.isin(np.arange(len(y)), idx_test)], y[~np.isin(np.arange(len(y)), idx_test)]
 
-        # 1. Centralizado
+        # 1. Centralized
         cent_model = LogisticRegression(max_iter=1000).fit(X_train_inf + 0.5*(X_train_sup - X_train_inf), y_train)
         res_cent = compute_metrics(y_test, cent_model.predict(X_test_inf + 0.5*(X_test_sup - X_test_inf)), cent_model.predict_proba(X_test_inf + 0.5*(X_test_sup - X_test_inf))[:, 1])
-        for k in metric_keys: runs_results["Centralized"][k].append(res_cent[k])
+        for k in metric_keys:
+            runs_results["Centralized"][k].append(res_cent[k])
 
         # 2. Local Avg
         local_metrics_run = {k: [] for k in metric_keys}
         for indices in clients_indices:
             loc_model = LogisticRegression(max_iter=1000).fit(X_inf[indices] + 0.5*(X_sup[indices] - X_inf[indices]), y[indices])
             lm = compute_metrics(y_test, loc_model.predict(X_test_inf + 0.5*(X_test_sup - X_test_inf)), loc_model.predict_proba(X_test_inf + 0.5*(X_test_sup - X_test_inf))[:, 1])
-            for k in metric_keys: local_metrics_run[k].append(lm[k])
-        for k in metric_keys: runs_results["Local Avg"][k].append(np.mean(local_metrics_run[k]))
+            for k in metric_keys:
+                local_metrics_run[k].append(lm[k])
+        for k in metric_keys:
+            runs_results["Local Avg"][k].append(np.mean(local_metrics_run[k]))
 
-        # 3. Métodos Federados Parametrizados (Medida, Inspirados e Intervalos)
+        # 3. Federated methods
         for method in aggregation_methods:
-            if method["name"] in ["Centralized", "Local Avg"]: continue
+            if method["name"] in ["Centralized", "Local Avg"]:
+                continue
             
             n_features = X_inf.shape[1]
             global_beta = np.zeros(n_features)
@@ -184,7 +189,8 @@ def run_robust_federated_experiment(scenario_type="iid", num_runs=5, rounds=5, a
             final_fl = IntervalLogisticRegressionSGD(n_features)
             final_fl.beta, final_fl.beta_0 = global_beta, global_beta_0
             res_fl = compute_metrics(y_test, final_fl.predict(X_test_inf, X_test_sup), final_fl.predict_proba(X_test_inf, X_test_sup))
-            for k in metric_keys: runs_results[method["name"]][k].append(res_fl[k])
+            for k in metric_keys:
+                runs_results[method["name"]][k].append(res_fl[k])
 
     # Imprimir tabla resumen
     print(f"\nRESULTADOS FINALES ({num_runs} REPETICIONES) - {scenario_type.upper()}")

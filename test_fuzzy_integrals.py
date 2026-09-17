@@ -47,7 +47,7 @@ def h_iv_func():
 
 
 # ==========================================
-# 1. TESTS PARA FUNCIONES NUMÉRICAS (REALES)
+# 1. NUMERIC FUNCTION TESTS
 # ==========================================
 
 def test_sugeno_integral(numeric_inputs, dummy_measure):
@@ -89,7 +89,7 @@ def test_choquet_inspired_aggregation(numeric_inputs):
 
 
 # ==========================================
-# 2. TESTS PARA FUNCIONES DE INTERVALOS (IV)
+# 2. IV FUNCTION TESTS
 # ==========================================
 
 def test_interval_sugeno_integral(interval_inputs, dummy_measure_iv):
